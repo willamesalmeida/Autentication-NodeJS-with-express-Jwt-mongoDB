@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const authController = require('./src/controllers/auth.js')
+
 const app = express();
 
 //Models
@@ -12,6 +14,9 @@ const User = require("./models/User");
 //config JSON response
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+app.use('/auth/register', authController);
+
 
 //Open Route - Public route
 app.get("/", (req, res) => {
