@@ -1,121 +1,52 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const accountValidation = require('../validators/account');
+const response = require('../middleware/response.js')
 
-const route = express.Router()
+//Models
 
-route.post("/auth/register", accountValidation, async (req, res) => {
-    const { name, email, password, confirmPassword } = req.body;
-    
-    //validaitons
-    /* console.log(req.body);
-    if (!name) {
-      return res.status(422).json({ msg: "O nome é obrigatorio!" });
-    }
-  
-    if (!email) {
-      return res.status(422).json({ msg: "O email é obrigatorio!" });
-    }
-    if (!password) {
-      return res.status(422).json({ msg: "A senha é obrigatorio!" });
-    }
-  
-    if (password !== confirmPassword) {
-      return res.status(422).json({ msg: "As senhas devem ser iguais!" });
-    } */
-  
+const User = require('../models/User.js');
+const { getMessage } = require('../helpers/message');
+
+//Define router
+const router = express.Router()
+
+//router to create user
+
+router.post("/register", accountValidation, response,  async (req, res) => {
+    const {nome, email, password} = req.body
+
+    // Creating Hash
+
+    const salt = 12
+    const saltARounds = await bcrypt.genSaltSync(salt)
+    const passwordHash = await bcrypt.hashSync(password, saltARounds)
+   
     //check if user exists
    
     const userExists = await User.findOne({ email: email });
-  
-    if (userExists) {
-      return res.status(422).json({ msg: "Por favor, utilize um outro e-mail!" });
-    }
-    const salt = await bcrypt.genSalt(12);
-    const passwordHash = await bcrypt.hashSync(password, salt);
-  
+    if(userExists) return res.jsonBadRequest(null, "E-mail já cadastrado!")
+    
     //create user
    
     const user = new User({
-      name,
+      nome,
       email,
       password: passwordHash,
     });
   
     try {
       await user.save();
-      res.status(201).json({ msg: "Usuario criado com sucesso!" });
+      res.jsonOk(null, getMessage())
+      /* res.status(200).json({msg: "Usuário criado com sucesso!"}) */
+      console.log("oik")
     } catch (error) {
-      console.log(error);
-      res.status(500).json({
-        msg: "Aconteceu um erro no servideo, tente novamente mais tarde!",
-      });
+        res.jsonBadRequest(null, getMessage())
+        /* res.status(500).json({msg: "Error no cadastro!"}) */
     }
-  });
+    //res.status(200).json({msg: "tudo OK"})
+    return res.jsonOk(null, getMessage("account.signin.success")) 
+ });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-route.post("/auth/login", async (req, res) => {
-    const { email, password } = req.body;
-  
-    //validations
-   
-    if (!email) {
-      return res.status(422).json({ msg: "O E-mail é obrigatorio!" });
-    }
-  
-    if (!password) {
-      return res.status(422).json({ msg: "A senha é obrigatoria!" });
-    }
-   
-    // check if user exits
-  
-    const user = await User.findOne({ email: email });
-  
-    if (!user) {
-      return res.status(422).json({ msg: "Usuario não encontrado!" });
-    }
-  
-    // check if password match
-  
-    const checkPassword = await bcrypt.compare(password, user.password);
-    if (!checkPassword) {
-      return res.status(422).json({ msg: "Senha inválida!" });
-    }
-  
-    try {
-      const secret = process.env.SECRET;
-      const token = jwt.sign(
-        {
-          id: user._id,
-        },
-        secret
-      );
-  
-      res.status(200).json({ msg: "Autenticação realizada com sucesso", token });
-    } catch (error) {
-      console.log(error);
-  
-      res.status(500).json({
-        msg: "Aconteceu um erro no servidor, tente novamente mais tarde!",
-      });
-    }
-  });
+ module.exports = router

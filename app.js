@@ -4,30 +4,31 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const authController = require('./src/controllers/auth.js')
+const authAccount = require('./src/controllers/auth.js');
+const response = require("express");
 
 const app = express();
 
 //Models
-const User = require("./models/User");
-
+/* const User = require("./models/User");
+ */
 //config JSON response
+/* app.use(response);*/
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-app.use('/auth/register', authController);
+app.use("/auth", authAccount);
 
 
 //Open Route - Public route
-app.get("/", (req, res) => {
+/* app.get("/", (req, res) => {
   const oi = "oi";
   console.log(req)
   return res.status(200).json({ msg: `${oi}` });
-});
+}); */
 
 //Private Route
 
-app.get("/user/:id", checkToken, async (req, res) => {
+/* app.get("/user/:id", checkToken, async (req, res) => {
   
   const id = req.params.id
 
@@ -167,16 +168,16 @@ app.post("/auth/login", async (req, res) => {
 
 const dbUser = process.env.DB_USER;
 const dbPassword = process.env.DB_PASS;
-
+ */
 //Conections with DB and run server
-
+const port = 3000
 mongoose
   .connect(
-    `mongodb+srv://${dbUser}:${dbPassword}@cluster0.i45m479.mongodb.net/?retryWrites=true&w=majority`
+    `mongodb+srv://willamesab:WlgaMK22GbRo34Eh@cluster0.i45m479.mongodb.net/?retryWrites=true&w=majority`
   )
   .then(() => {
-    app.listen(3000);
-    console.log("Server is runing");
+    app.listen(port);
+    console.log("Server is runing " + port );
   })
   .catch((err) => {
     console.log("Esse foi o erro encontrado na conexão" + err);
